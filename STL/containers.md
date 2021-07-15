@@ -3,6 +3,11 @@
     - [vector](#vector)
   - [List](#list)
   - [deque](#deque)
+  - [Stack](#stack)
+  - [Queue](#queue)
+  - [Heap](#heap)
+  - [Priority_queue](#priority_queue)
+  - [Slist](#slist)
 ## 容器
 分为序列式容器和关联式容器，常见的序列式容器如：vector、list、deque； 关联式如map、set等
 
@@ -30,7 +35,7 @@ iterator end_of_storage; // 可用空间的尾
 }
 ```
 
-![avator](../pics/vector.png)
+![avatar](../pics/vector.png)
 - 常见操作复杂度：
   - 随机访问 - 常数O(1)
   - 尾部插入/删除元素： 平均O(1)
@@ -227,3 +232,118 @@ struct _Deque_iterator {
       _M_last(__x._M_last), _M_node(__x._M_node) {}
 
 ```
+
+### Stack
+- 基本数据结构特性：
+  - 先进后出，不允许遍历
+- stack 不像 `vector、list、deque` 那样独立实现，它是可以使用某种容器作为底部结构，来实现 stack 的功能，更确却说 stack 是 `adapter(配接器)`。
+  - SGI STL 里的 stack 使用的是以 deque 为底部结构来实现其所有功能。
+  - **list(双向开口) 数据结构**，只要关闭首端，也可以作为 stack 的底部结构。
+  - **stack没有迭代器，不提供随机访问功能**，只能按照先进后出的操作进行
+
+```c++
+// stack 类，_Sequence 容器
+template <class _Tp, class _Sequence>
+class stack {
+
+  // requirements:
+  __STL_CLASS_REQUIRES(_Tp, _Assignable);
+  __STL_CLASS_REQUIRES(_Sequence, _BackInsertionSequence);
+  typedef typename _Sequence::value_type _Sequence_value_type;
+  __STL_CLASS_REQUIRES_SAME_TYPE(_Tp, _Sequence_value_type);
+
+
+#ifdef __STL_MEMBER_TEMPLATES
+  template <class _Tp1, class _Seq1>
+  friend bool operator== (const stack<_Tp1, _Seq1>&,
+                          const stack<_Tp1, _Seq1>&);
+  template <class _Tp1, class _Seq1>
+  friend bool operator< (const stack<_Tp1, _Seq1>&,
+                         const stack<_Tp1, _Seq1>&);
+#else /* __STL_MEMBER_TEMPLATES */
+  friend bool __STD_QUALIFIER
+  operator== __STL_NULL_TMPL_ARGS (const stack&, const stack&);
+  friend bool __STD_QUALIFIER
+  operator< __STL_NULL_TMPL_ARGS (const stack&, const stack&);
+#endif /* __STL_MEMBER_TEMPLATES */
+
+public:
+  typedef typename _Sequence::value_type      value_type;
+  typedef typename _Sequence::size_type       size_type;
+  typedef          _Sequence                  container_type;
+
+  typedef typename _Sequence::reference       reference;
+  typedef typename _Sequence::const_reference const_reference;
+protected:
+  _Sequence c;  // stack 底部容器
+public:
+  stack() : c() {}
+  explicit stack(const _Sequence& __s) : c(__s) {}
+
+  bool empty() const { return c.empty(); }  // 判断 stack 是否为空
+  size_type size() const { return c.size(); }  // 判断 stack 的大小
+  reference top() { return c.back(); }  // 尾部元素
+  const_reference top() const { return c.back(); }
+  void push(const value_type& __x) { c.push_back(__x); }  // 尾部插入元素
+  void pop() { c.pop_back(); }  // 尾部弹出元素
+};
+```
+- 采用list作为底层实现：
+```c++
+stack<int, list<int>> istack;
+```
+### Queue
+- 基本数据结构特性：
+  - queue 是一种**先进先出的数据结构**。
+  - 从最底端加入元素，从最顶端取出元素
+- 具体实现：
+  - 与`stack`一样，本质上是一种适配器，底层采用deque实现
+  - **没有迭代器**
+
+```c++
+push();//尾端进
+pop();//首端出
+front();//返回首端元素
+back();//返回尾端元素
+```
+
+### Heap
+- heap严格意义上不属于STL容器组件，但它是priority_queue优先队列实现的基础。
+- 基本数据特性：
+  - 基于完全二叉树实现的heap
+  - 底层通过`vector`来作为数据容器，通过最小/最大二叉堆的方式进行数据管理和存放: `min-heap` `max-heap`
+  - `max-heap(最大堆)`：特点是根节点是最大值，每个节点的键值都大于或等于其子节点键值。
+  - `min-heap(最小堆)`：特点是根节点是最小值，每个节点的键值都小于或等于其子节点键值。
+  - heap默认为`max-heap`
+- 实现原理：
+  - 完全二叉树使用层次遍历方式，将树的节点依次存储在 vector 容器中，根节点位于 vector 的头部；
+  - 当 heap 中的某个节点位于 vector 的 i 处， 其左子节点位于 vector 的 `2i` 处，右子节点位于 vector 的 `2i+1` 处；然后调整为 heap
+- heap同样不提供迭代器的实现，不提供遍历功能
+- 主要api
+  - `push_heap` 是把新元素插入到底层 vector 的 end() 处，然后做 shift up 调整，使其满足 heap 的特性。
+  - `pop_heap` 是将根节点取出(位于 vector 的 begin() 处)，然后做 shift down 调整，使其满足 heap 的特性。 特别注意，pop_heap 只是将根节点的值移动到 vector 的尾部，**并没有取出来**，vector 的 [first, last-1) 位置元素满足 heap 特性；取出使用底部容器 vector 的 pop_back() 操作函数。
+  - `sort_heap`内部实现就是一直调用 pop_heap，知道迭代器 last 指向 迭代器 first 为止。 **用于调整节点顺序**
+  - `make_heap` 是将一个完全二叉树存储在 vector 中，然后调整为一个 heap，内部调用 `__adjust_heap` 实现。
+
+
+### Priority_queue
+
+- 优先队列，即基于堆完成
+  - 默认情况下，以 vector 为底层容器，加上 heap(默认max-heap) 处理规则；具有权值高者先出的特性。
+  - 被归为 **container adapter**，就是对 container 进行封装一层。
+  - priority_queue **本质还是 queue**，**只允许在尾部加入元素，并从首部取出元素**；只不过**内部元素具有优先级**，优先级高者先出。
+- priority_queue 的所有元素进出具有一定规则，所以**不提供遍历功能，也不提供迭代器**。
+
+```c++
+priority_queue<int, vector<int>, greater<int>> p;// 指定堆实现方式
+```
+
+### Slist
+- 单向链表
+  - slist与list的差别主要在于： 前者的迭代器属于单向的`forward iterator` 后者则为`bidirectional iterator`
+  - 单向链表空间占用更小，某些操作更快
+  - STL slist 作为单链表，如果在尾端插入，效率很低，所以只提供首端插入 `push_front()` 操作。
+  - slist 容器并没有归入标准规格。
+
+- C++11 提供 `std::forward_list`(正向链表)，与 slist 功能类似。
+- `forward_list` 没有像 slist 提供 `size()` 成员函数，因为 forward_list 类模板是专为极度考虑性能的程序而设计的。
