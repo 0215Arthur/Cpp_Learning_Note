@@ -13,3 +13,7 @@
   - 进行空间配置和管理，实现了动态空间配置、空间管理和空间释放的class template
 
 ![avatar](../pics/stl.png)
+
+-----
+参考资料：
+https://github.com/steveLauwh/SGI-STL
