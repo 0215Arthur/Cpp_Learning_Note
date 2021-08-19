@@ -1,13 +1,18 @@
 - [容器](#容器)
   - [序列式容器](#序列式容器)
     - [vector](#vector)
-  - [List](#list)
-  - [deque](#deque)
-  - [Stack](#stack)
-  - [Queue](#queue)
-  - [Heap](#heap)
-  - [Priority_queue](#priority_queue)
-  - [Slist](#slist)
+    - [List](#list)
+    - [deque](#deque)
+    - [Stack](#stack)
+    - [Queue](#queue)
+    - [Heap](#heap)
+    - [Priority_queue](#priority_queue)
+    - [Slist](#slist)
+  - [关联式容器 associative containers](#关联式容器-associative-containers)
+    - [平衡二叉搜索树 与 AVL Tree](#平衡二叉搜索树-与-avl-tree)
+    - [红黑树 RB-Tree](#红黑树-rb-tree)
+    - [set](#set)
+    - [map](#map)
 ## 容器
 分为序列式容器和关联式容器，常见的序列式容器如：vector、list、deque； 关联式如map、set等
 
@@ -49,7 +54,7 @@ iterator end_of_storage; // 可用空间的尾
   - 1. 配置一块更大空间； 2.将原内容拷贝过去； 3.释放原空间
 
 
-### List
+#### List
 - 基本数据结构：
   - SGI STL 的 list 是一个**双向链表**，同时还是一个**环状的双向链表**；对于任何位置的元素插入或元素移除，list 永远是常数时间。
   - list 数据结构设计的是环状的双向链表，由于**遵循 STL 的`前闭后开`原则**，默认有一个 node 指针刻意**置于尾端的一个空白节点**。
@@ -137,7 +142,7 @@ insert(); // 插入在...之前，插入完成后，新节点将位于标示出�
 ```
 
 
-### deque
+#### deque
 - 双向队列： 基本数据结构特性：
   - **一种双向开口的连续线性空间**。可以在头尾两端分别做元素的插入和删除操作。  
 - `deque` 和 `vector` 的差异：
@@ -233,7 +238,7 @@ struct _Deque_iterator {
 
 ```
 
-### Stack
+#### Stack
 - 基本数据结构特性：
   - 先进后出，不允许遍历
 - stack 不像 `vector、list、deque` 那样独立实现，它是可以使用某种容器作为底部结构，来实现 stack 的功能，更确却说 stack 是 `adapter(配接器)`。
@@ -292,7 +297,7 @@ public:
 ```c++
 stack<int, list<int>> istack;
 ```
-### Queue
+#### Queue
 - 基本数据结构特性：
   - queue 是一种**先进先出的数据结构**。
   - 从最底端加入元素，从最顶端取出元素
@@ -307,8 +312,8 @@ front();//返回首端元素
 back();//返回尾端元素
 ```
 
-### Heap
-- heap严格意义上不属于STL容器组件，但它是priority_queue优先队列实现的基础。
+#### Heap
+- heap严格意义上不属于STL容器组件，但它是**priority_queue优先队列**实现的基础。
 - 基本数据特性：
   - 基于完全二叉树实现的heap
   - 底层通过`vector`来作为数据容器，通过最小/最大二叉堆的方式进行数据管理和存放: `min-heap` `max-heap`
@@ -326,7 +331,7 @@ back();//返回尾端元素
   - `make_heap` 是将一个完全二叉树存储在 vector 中，然后调整为一个 heap，内部调用 `__adjust_heap` 实现。
 
 
-### Priority_queue
+#### Priority_queue
 
 - 优先队列，即基于堆完成
   - 默认情况下，以 vector 为底层容器，加上 heap(默认max-heap) 处理规则；具有权值高者先出的特性。
@@ -338,7 +343,7 @@ back();//返回尾端元素
 priority_queue<int, vector<int>, greater<int>> p;// 指定堆实现方式
 ```
 
-### Slist
+#### Slist
 - 单向链表
   - slist与list的差别主要在于： 前者的迭代器属于单向的`forward iterator` 后者则为`bidirectional iterator`
   - 单向链表空间占用更小，某些操作更快
@@ -347,3 +352,83 @@ priority_queue<int, vector<int>, greater<int>> p;// 指定堆实现方式
 
 - C++11 提供 `std::forward_list`(正向链表)，与 slist 功能类似。
 - `forward_list` 没有像 slist 提供 `size()` 成员函数，因为 forward_list 类模板是专为极度考虑性能的程序而设计的。
+
+### 关联式容器 associative containers
+关联容器和顺序容器存在根本上的区别：
+- 关联容器中的元素是**按关键字来保存和访问的**
+  - **支持高效的关键字查找和访问**
+- 顺序容器的元素是按照索引/容器中的位置来访问的
+
+|映射|底层实现 | 是否有序|数值是否可以重复|能否更改数值|查询效率|增删效率|
+|  ----  | ----  |  ----  | ----  |  ----  | ----  | ----  |
+|std::map	|红黑树	|key有序|key不可重复	|key不可修改	|O(logn)	|O(logn)
+|std::set| | key有序 | key不可重复 
+|std::multiset| | 有序 | **key可重复**
+|std::multimap|	**红黑树** |key有序	|**key可重复**	|key不可修改	|O(logn)	|O(logn)
+|std::unordered_map|**哈希表** std::hash_map|key无序|key不可重复|	key不可修改|O(1)| O(1)
+|std::unordered_set|**哈希表** std::hash_map|key无序|key不可重复|	key不可修改|O(1)| O(1)
+|std::unordered_multimap|**哈希表** std::hash_map|key无序|**key可重复**|	key不可修改|O(1)| O(1)
+|std::unordered_multiset|**哈希表** std::hash_map|key无序|**key可重复**|	key不可修改|O(1)| O(1)
+
+#### 平衡二叉搜索树 与 AVL Tree
+
+AVL： 平衡条件的建立是为了确保整颗树的深度为 **O(logN)**
+- 要求任何节点的**左右子树高度相差最多1**
+- 这是一个较弱的条件，但仍能保证 **对数深度** 平衡状态
+
+- AVL **平衡破坏的情况**
+  - 共四种情况： 大致分为两类
+  - outside插入： 采用**单旋转操作**调整
+  - inside插入：  采用**双旋转操作**调整
+![avatar](./../pics/AVL.png)
+![avatar](../pics/AVL_single.png)
+![avatar](../pics/AVL_double.png)
+
+#### 红黑树 RB-Tree
+**关联容器真正的底层机制，平衡条件区别于AVL Tree**，但同样运用了单旋转和双旋转。
+
+- **定义(本质上还是二叉搜索树)**：
+  - 每个节点非黑即红
+  - 根节点为黑色
+  - 如果节点为红，子节点必须为黑
+  - 任一节点到树尾端的任何路径，所含的黑节点数量必须相同。
+
+![avatar](../pics/RB_Tree.png)
+- 插入节点必须为红，新节点的父节点必须为黑。
+  - 若插入位置不满足以上约束，进行节点旋转
+
+- 二叉搜索树的元素**插入操作**：
+  - 插入新元素时，可以从根节点开始，遇到键值比插入元素大就向左，遇到键值比插入元素小就向右，一直到尾端，即为插入点。
+
+- 二叉搜索树的元素**删除操作**：
+  - 删除节点 A，当 A 只有一个子节点，就直接将 A 的子节点连接到 A 的父节点，并将 A 删除。
+  - 当 A 有两个子节点，**将其右子树内的 最小节点取代 A**。
+
+
+#### set
+- set 元素的键值就是实值，实值就是键值。简单理解，含有 Key 类型对象的已排序集。
+- 不允许重复key， 并按照key升序排列
+- 不能通过迭代器改变key值， 因为set迭代器使用底层RB-Tree的**const iterator**
+- 元素插入： 调用RB-Tree底层接口 `insert_unique` 保持key不重复
+```c++
+template<
+    class Key,
+    class Compare = std::less<Key>, // 默认递增排序
+    class Allocator = std::allocator<Key>
+> class set;
+```
+
+#### map
+- map 元素是键值对 pair，同时拥有键值(key)和实值(value)。
+- map 不允许元素的键值有相同，必须唯一。
+- map 所有元素按照元素的键值自动排序。
+- 本质上与set实现一致。
+- 只能修改value，不能修改key值，因此map的iterator不是普通的const iterator
+```c++
+template<
+    class Key,
+    class T,
+    class Compare = std::less<Key>,
+    class Allocator = std::allocator<std::pair<const Key, T> >
+> class map;
+```
